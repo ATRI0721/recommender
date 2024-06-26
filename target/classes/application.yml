@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: recomender
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/rsdb
+    username: root
+    password: 123456
+  main:
+    banner-mode: "off"
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+   banner: false
+   db-config:
+      id-type: auto
+      table-prefix: rs_
+
+logging:
+  level:
+    root: WARN
+
+

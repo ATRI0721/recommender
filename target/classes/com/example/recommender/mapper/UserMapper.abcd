@@ -1,0 +1,126 @@
+package com.example.recommender.mapper;
+
+import com.example.recommender.pojo.User;
+import com.google.gson.Gson;
+import java.io.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import org.checkerframework.checker.units.qual.s;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+
+@Component
+public class UserMapper {
+    private final String PATH = "src\\main\\resources\\user_data.txt";
+    private final Gson gson = new Gson();
+
+    public int insert(User user) {
+        try (FileWriter fileWriter = new FileWriter(PATH, true);
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                PrintWriter printWriter = new PrintWriter(bufferedWriter)) {
+            user.setId(getNextId());
+            printWriter.println(gson.toJson(user));
+            return 1; // 返回1表示插入成功
+        } catch (IOException e) {
+            System.out.println("An error occurred while inserting user data.");
+            e.printStackTrace();
+            return 0; // 返回0表示插入失败
+        }
+    }
+
+    public User selectById(int id) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(PATH))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                User user = gson.fromJson(line, User.class);
+                if (user.getId() == id) {
+                    return user;
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred while reading user data.");
+            e.printStackTrace();
+        }
+        return null; // 返回null表示未找到对应用户
+    }
+
+    public void updateById(User updatedUser) {
+        File tempFile = new File("D:\\tmp\\user_data_tmp.txt");
+        Integer id = updatedUser.getId();
+        String regax = "\"id\":" + id;
+        Pattern pattern = Pattern.compile(regax);
+        if(tempFile.exists()) tempFile.delete();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(PATH));
+                FileWriter fileWriter = new FileWriter(tempFile, true);
+                PrintWriter printWriter = new PrintWriter(fileWriter)) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                if (pattern.matcher(line).find()) {
+                    printWriter.println(gson.toJson(updatedUser));
+                } else {
+                    printWriter.println(line);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred while updating user data.");
+            e.printStackTrace();
+        }
+        File originalFile = new File(PATH);
+        if (originalFile.exists()) {
+            originalFile.delete(); 
+        }
+        tempFile.renameTo(originalFile);
+    }
+
+    public List<User> selectByMap(Map<String, Object> map) {
+        List<User> userList = new ArrayList<>();
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(PATH))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                User user = gson.fromJson(line, User.class);
+                boolean isMatch = true;
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    if (entry.getKey().equals("username") && !user.getUsername().equals(entry.getValue())) {
+                        isMatch = false;
+                        break;
+                    }
+                    if (entry.getKey().equals("password") && !user.getPassword().equals(entry.getValue())) {
+                        isMatch = false;
+                        break;
+                    }
+                }
+                if (isMatch) {
+                    userList.add(user);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred while reading user data.");
+            e.printStackTrace();
+        }
+
+        return userList;
+    }
+
+    private int getNextId() {
+        int maxId = 0;
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(PATH))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                User user = gson.fromJson(line, User.class);
+                if (user.getId() > maxId) {
+                    maxId = user.getId();
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred while getting next user ID.");
+            e.printStackTrace();
+        }
+        return maxId + 1;
+    }
+}

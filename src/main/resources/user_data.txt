@@ -1,0 +1,4 @@
+{"id":1,"username":"abc","password":"123","clickList":"0,000041,000041","shoppingCart":"0,042136","purchaseList":"0"}
+{"id":2,"username":"AGH","password":"123456","clickList":"0,000041,000041,000041","shoppingCart":"0,000041,018946,114042,092224","purchaseList":"0"}
+{"id":3,"username":"abcd","password":"1234","clickList":"0","shoppingCart":"0,000061,012533,013438","purchaseList":"0"}
+{"id":4,"username":"ADGJ","password":"123456","clickList":"0","shoppingCart":"0,000041,043064,005717,026056,048616,102476","purchaseList":"0"}
