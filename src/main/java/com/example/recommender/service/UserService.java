@@ -222,7 +222,9 @@ public class UserService {
         JsonArray jsonArray = new JsonArray();
         String purchaseList = user.getPurchaseList();
         Arrays.stream(purchaseList.substring(1, purchaseList.length() - 1).split(","))
-                .forEach(e -> jsonArray.add(productService.getProduct(e)));
+                .forEach(e -> {
+                    jsonArray.add(productService.getProduct(e));
+                });
         return jsonArray.toString();
     }
 
@@ -236,13 +238,28 @@ public class UserService {
         }
 
         List<List<Float>> scores = new ArrayList<>();
-        scores.add(UserDataDeal.getScore(user.getClickList()));
-        scores.add(UserDataDeal.getScore(user.getPurchaseList()));
-        scores.add(UserDataDeal.getScore(user.getShoppingCart()));
+
+        String clickList = user.getClickList();
+        String purchaseList = user.getPurchaseList();
+        String tmpShoppingCart = user.getShoppingCart();
+
+        List<String> shoppingCart = new ArrayList<>();
+        JsonParser.parseString(tmpShoppingCart).getAsJsonArray()
+                .forEach(e -> shoppingCart.add(e.getAsJsonObject().get("id").getAsString()));
+
+        List<List<String>> lists = new ArrayList<>();
+        lists.add(UserDataDeal.getList(clickList));
+        lists.add(shoppingCart);
+        lists.add(UserDataDeal.getList(purchaseList));
+        for (List<String> list : lists) {
+            List<Float> score = UserDataDeal.getScore(list);
+            scores.add(score);
+        }
+        HashSet<String> setOfProducts = new HashSet<>();
+        lists.forEach(e -> setOfProducts.addAll(e));
 
         List<Float> userVec = calculateUserVec(scores);
-        Set<String> recommendList = gatherRecommendList(user);
-        recommendList.addAll(UserDataDeal.getSet(user.getClickList()));
+        Set<String> recommendList = UserDataDeal.getRecommendList(setOfProducts);
         List<Pair<String, Double>> recommendScore = calculateRecommendScores(recommendList, userVec);
         return getTopRecommendations(recommendScore, 20);
     }
@@ -253,14 +270,6 @@ public class UserService {
             userVec.set(i, (scores.get(0).get(i) + 6 * scores.get(1).get(i) + 3 * scores.get(2).get(i)));
         }
         return userVec;
-    }
-
-    private Set<String> gatherRecommendList(User user) {
-        Set<String> recommendList = new HashSet<>();
-        recommendList.addAll(UserDataDeal.getSet(user.getPurchaseList()));
-        recommendList.addAll(UserDataDeal.getSet(user.getShoppingCart()));
-        recommendList.addAll(UserDataDeal.getSet(user.getClickList()));
-        return UserDataDeal.getRecommendList((HashSet<String>) recommendList);
     }
 
     private List<Pair<String, Double>> calculateRecommendScores(Set<String> recommendList, List<Float> userVec) {

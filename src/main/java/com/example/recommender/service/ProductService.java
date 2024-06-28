@@ -37,8 +37,6 @@ public class ProductService {
     // }
 
     public JsonObject getProduct(String productId) {
-        if (!DataDeal.productExists(productId))
-            return null;
         Product product = productMapper.getProduct(productId);
         if (product == null)
             return null;

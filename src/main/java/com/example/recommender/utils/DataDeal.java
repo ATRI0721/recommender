@@ -57,6 +57,8 @@ public class DataDeal {
     }
 
     public static Boolean productExists(String id) {
+        if(id.length()!= 6)
+            return false;
         File file = new File(path + '\\' + id);
         return file.exists();
     }
