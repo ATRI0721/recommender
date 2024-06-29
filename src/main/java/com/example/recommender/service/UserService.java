@@ -34,17 +34,23 @@ public class UserService {
     private Gson gson = new Gson();
 
     public String login(String userdata) {
-        User user = new Gson().fromJson(userdata, User.class);
-        Gson gson = new Gson();
+        JsonObject user = JsonParser.parseString(userdata).getAsJsonObject();
+        JsonObject responseJson = new JsonObject();
         List<User> userList = userMapper.selectByMap(new HashMap<String, Object>() {
             {
-                put("username", user.getUsername());
-                put("password", user.getPassword());
+                put("username", user.get("username").getAsString());
+                put("password", user.get("password").getAsString());
             }
         });
-        if (userList.size() == 0)
-            return gson.toJson(-1);
-        return gson.toJson(userList.get(0).getId());
+        if (userList.size() == 0) {
+            responseJson.addProperty("code", "-1");
+            responseJson.addProperty("msg", "user not exists");
+            return responseJson.toString();
+        }
+        responseJson.addProperty("code", "1");
+        responseJson.addProperty("msg", "login success");
+        responseJson.addProperty("id", userList.get(0).getId());
+        return responseJson.toString();
     }
 
     public Boolean userAndProductExist(User user, String productId) {
